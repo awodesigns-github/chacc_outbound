@@ -217,7 +217,7 @@ The `result` is a dictionary with the message UUID and current status. Since del
 
 | Option | Required? | Notes |
 |--------|-----------|-------|
-| `recipient_id` | Yes | Your internal customer/order/user ID |
+| `recipient_id` | Yes | Your internal order/user ID |
 | `recipient_contact` | Yes | Email address or phone number |
 | `subject` | For email | Ignored for SMS |
 | `body` | Yes | The message content |
