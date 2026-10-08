@@ -1,16 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional, List, Dict, Any, Generic, TypeVar
 from sqlalchemy import select, func, or_
 from sqlalchemy.orm import Session
 
-from .context_factory import get_db, get_outbound_service
+from .context_factory import get_current_user, get_db, get_outbound_service
 from .models import Outbound, OutboundModuleMapping
 from .service import OutboundService
 from .exceptions import AdapterNotFoundError
 
 
 router = APIRouter()
+security = HTTPBearer()
 
 T = TypeVar("T")
 
@@ -119,6 +121,7 @@ async def send_outbound(
     payload: SendOutboundRequest,
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     try:
         return await service.send(
@@ -148,6 +151,7 @@ async def list_outbounds(
     search: str = Query("", description="Search by uuid, module_name, recipient_contact, subject, or body"),
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     stmt = select(Outbound)
     if module_name:
@@ -199,6 +203,7 @@ async def get_outbound(
     outbound_uuid: str,
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     outbound = await service.get_message(db, outbound_uuid)
     if not outbound:
@@ -211,6 +216,7 @@ async def get_outbound_message_status(
     outbound_uuid: str,
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     status = service.get_status(db, outbound_uuid)
     if status is None:
@@ -222,6 +228,7 @@ async def get_outbound_message_status(
 async def list_module_mappings(
     params: PaginationParams = Depends(),
     module_name: Optional[str] = Query(None, description="Filter by module name"),
+    current_user: dict = Depends(get_current_user),
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
 ):
@@ -258,6 +265,7 @@ async def list_module_mappings(
 @router.get("/adapters")
 async def list_adapters(
     service: OutboundService = Depends(get_outbound_service),
+    current_user: dict = Depends(get_current_user),
 ):
     adapters = service.adapter_registry_service.list_adapters()
     return {"success": True, "data": adapters}
@@ -268,6 +276,7 @@ async def get_module_mapping(
     module_name: str,
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     mapping = service.get_module_mapping(db, module_name)
     if not mapping:
@@ -280,6 +289,7 @@ async def create_module_mapping(
     payload: CreateModuleMappingRequest,
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     mapping = service._create_or_update_module_mapping(
         db=db,
@@ -303,6 +313,7 @@ async def update_module_mapping(
     payload: CreateModuleMappingRequest,
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     existing = service.get_module_mapping(db, module_name)
     if not existing:
@@ -329,6 +340,7 @@ async def delete_module_mapping(
     module_name: str,
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     mapping = service.get_module_mapping(db, module_name)
     if not mapping:
