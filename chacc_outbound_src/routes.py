@@ -123,6 +123,8 @@ async def send_outbound(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     try:
         return await service.send(
             db=db,
@@ -153,6 +155,8 @@ async def list_outbounds(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     stmt = select(Outbound)
     if module_name:
         stmt = stmt.where(Outbound.module_name == module_name)
@@ -205,6 +209,8 @@ async def get_outbound(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     outbound = await service.get_message(db, outbound_uuid)
     if not outbound:
         raise HTTPException(status_code=404, detail="Message not found")
@@ -218,6 +224,8 @@ async def get_outbound_message_status(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     status = service.get_status(db, outbound_uuid)
     if status is None:
         raise HTTPException(status_code=404, detail="Outbound Message not found")
@@ -232,6 +240,8 @@ async def list_module_mappings(
     service: OutboundService = Depends(get_outbound_service),
     db: Session = Depends(get_db),
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     stmt = select(OutboundModuleMapping)
     if module_name:
         stmt = stmt.where(OutboundModuleMapping.module_name == module_name)
@@ -267,6 +277,8 @@ async def list_adapters(
     service: OutboundService = Depends(get_outbound_service),
     current_user: dict = Depends(get_current_user),
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     adapters = service.adapter_registry_service.list_adapters()
     return {"success": True, "data": adapters}
 
@@ -278,6 +290,8 @@ async def get_module_mapping(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     mapping = service.get_module_mapping(db, module_name)
     if not mapping:
         raise HTTPException(status_code=404, detail="Module mapping not found")
@@ -291,6 +305,8 @@ async def create_module_mapping(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     mapping = service._create_or_update_module_mapping(
         db=db,
         module_name=payload.module_name,
@@ -315,6 +331,8 @@ async def update_module_mapping(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     existing = service.get_module_mapping(db, module_name)
     if not existing:
         raise HTTPException(status_code=404, detail="Module mapping not found")
@@ -342,6 +360,8 @@ async def delete_module_mapping(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized: No current user found")
     mapping = service.get_module_mapping(db, module_name)
     if not mapping:
         raise HTTPException(status_code=404, detail="Module mapping not found")
