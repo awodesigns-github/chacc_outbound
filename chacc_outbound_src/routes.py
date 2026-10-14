@@ -1,18 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.security import HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional, List, Dict, Any, Generic, TypeVar
 from sqlalchemy import select, func, or_
 from sqlalchemy.orm import Session
 
-from .context_factory import get_current_user, get_db, get_outbound_service
+from .context_factory import get_db, get_outbound_service, get_current_user
 from .models import Outbound, OutboundModuleMapping
 from .service import OutboundService
 from .exceptions import AdapterNotFoundError
 
 
 router = APIRouter()
-security = HTTPBearer()
 
 T = TypeVar("T")
 

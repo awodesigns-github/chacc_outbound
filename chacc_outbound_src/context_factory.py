@@ -1,5 +1,6 @@
 from typing import Optional
 
+from fastapi import HTTPException
 from fastapi.params import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -47,9 +48,16 @@ async def get_current_user(
         credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ):
     context = get_module_context()
+
     if context is None:
         return None
+
     get_current_user_func = context.get_service("get_current_user")
+
     if get_current_user_func:
-        return await get_current_user_func(credentials)
+        current_user = await get_current_user_func(credentials)
+        if not current_user:
+            raise HTTPException(status_code=401, detail="User not authenticated")
+        return current_user
+    
     return None
